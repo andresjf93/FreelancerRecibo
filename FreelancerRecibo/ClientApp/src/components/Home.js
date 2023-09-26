@@ -1,5 +1,6 @@
 import React, { Component } from 'react';
 import axios from 'axios';
+import './receipt.css'; 
 
 export class Home extends Component {
     static displayName = Home.name;
@@ -16,6 +17,7 @@ export class Home extends Component {
             fullName: '', // Para almacenar el nombre completo
             documentType: '', // Para almacenar el tipo de documento
             documentNumber: '', // Para almacenar el número de documento
+            logoPreview: null, // Para mostrar la vista previa del logo
         };
     }
 
@@ -23,6 +25,14 @@ export class Home extends Component {
     handleChange = (event) => {
         const { name, value } = event.target;
         this.setState({ [name]: value });
+        if (name === 'amount' && parseFloat(value) < 0) {
+            // Si es negativo, establecer el valor en cero
+            this.setState({ [name]: '0' });
+        } else {
+            // Si es un valor no negativo, actualizar el estado normalmente
+            this.setState({ [name]: value });
+        }
+   
     };
 
     // Manejar el envío del formulario
@@ -42,55 +52,44 @@ export class Home extends Component {
             console.error('Error al generar el recibo:', error);
         }
     };
-
-
     handleLogoChange = (event) => {
         const file = event.target.files[0];
         const reader = new FileReader();
 
-       reader.onloadend = () => {
-          this.setState({ logo: reader.result }); // Almacena la URL de la imagen en el estado
-            };
-
-            if (file) {
-                reader.readAsDataURL(file);
-            }
+        reader.onloadend = () => {
+            this.setState({ logo: reader.result, logoPreview: reader.result });
         };
 
+        if (file) {
+            reader.readAsDataURL(file);
+        }
+    };
+   
        
     render() {
+        const currencyOptions = [
+            { value: 'PEN', label: 'Sol peruano (PEN)' },
+            { value: 'USD', label: 'Dolar estadounidense (USD)' },
+            { value: 'EUR', label: 'Euro (EUR)' },
+            { value: 'GBP', label: 'Libra esterlina (GBP)' },
+            { value: 'JPY', label: 'Yen japones (JPY)' },
+            { value: 'CAD', label: 'Dolar canadiense (CAD)' },
+            { value: 'AUD', label: 'Dolar australiano (AUD)' },
+            { value: 'CHF', label: 'Franco suizo (CHF)' },
+            { value: 'CNY', label: 'Yuan chino (CNY)' },
+            { value: 'INR', label: 'Rupia india (INR)' },
+            { value: 'BRL', label: 'Real brasileno (BRL)' },
+            { value: 'ZAR', label: 'Rand sudafricano (ZAR)' },
+            { value: 'ARS', label: 'Peso argentino (ARS)' },
+            { value: 'MXN', label: 'Peso mexicano (MXN)' },
+            { value: 'COP', label: 'Peso colombiano (COP)' },
+        ];
         return (
-            <div>
+            <div className="container">
                 <h1>Crear Recibo</h1>
                 <form onSubmit={this.handleSubmit}>
                     <label>
-                        Logo de Marca:
-                        <input
-                            type="file"
-                            name="logo"
-                            onChange={this.handleLogoChange}
-                        />
-                    </label>
-                    <label>
-                        Tipo de Moneda:
-                        <input
-                            type="text"
-                            name="currency"
-                            value={this.state.currency}
-                            onChange={this.handleChange}
-                        />
-                    </label>
-                    <label>
-                        Monto a Cobrar:
-                        <input
-                            type="text"
-                            name="amount"
-                            value={this.state.amount}
-                            onChange={this.handleChange}
-                        />
-                    </label>
-                    <label>
-                        Título del Recibo:
+                        Titulo del Recibo:
                         <input
                             type="text"
                             name="title"
@@ -99,7 +98,48 @@ export class Home extends Component {
                         />
                     </label>
                     <label>
-                        Descripción del Recibo:
+                        Logo de Marca:
+                        {this.state.logoPreview ? (
+                            <img
+                                src={this.state.logoPreview}
+                                alt="Logo de Marca"
+                                style={{ maxWidth: '100px' }}
+                            />
+                        ) : (
+                            <input
+                                type="file"
+                                name="logo"
+                                onChange={this.handleLogoChange}
+                            />
+                        )}
+                    </label>
+                    <label>
+                        Tipo de Moneda:
+                        <select
+                            name="currency"
+                            value={this.state.currency}
+                            onChange={this.handleChange}
+                        >
+                            <option value="">Seleccione una moneda</option>
+                            {currencyOptions.map((option) => (
+                                <option key={option.value} value={option.value}>
+                                    {option.label}
+                                </option>
+                            ))}
+                        </select>
+                    </label>
+                    <label>
+                        Monto a Cobrar:
+                        <input
+                            type="number"
+                            name="amount"
+                            value={this.state.amount}
+                            onChange={this.handleChange}
+                            step="0.01" // Permite decimales (centavos)
+                        />
+                    </label>
+                    <label>
+                        Descripcion del Recibo:
                         <textarea
                             name="description"
                             value={this.state.description}
@@ -107,7 +147,7 @@ export class Home extends Component {
                         />
                     </label>
                     <label>
-                        Dirección:
+                        Direccion:
                         <input
                             type="text"
                             name="address"
@@ -134,7 +174,7 @@ export class Home extends Component {
                         />
                     </label>
                     <label>
-                        Número de Documento:
+                        Numero de Documento:
                         <input
                             type="text"
                             name="documentNumber"

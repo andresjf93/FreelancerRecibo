@@ -1,75 +1,91 @@
-﻿using DinkToPdf.Contracts;
-using DinkToPdf;
+﻿using DinkToPdf;
+using DinkToPdf.Contracts;
 using Microsoft.AspNetCore.Mvc;
 
-[ApiController]
-[Route("api/receipts")]
-public class ReceiptController : ControllerBase
+namespace FreelancerRecibo.Controllers
 {
-    private readonly IConverter _pdfConverter;
-
-    public ReceiptController(IConverter pdfConverter)
-    {
-        _pdfConverter = pdfConverter;
-    }
+    [ApiController]
+    [Route("api/receipts")]
     public class ReceiptData
     {
-        public string FullName { get; set; }
+        public string Logo { get; set; }
         public string Currency { get; set; }
         public decimal Amount { get; set; }
         public string Title { get; set; }
         public string Description { get; set; }
         public string Address { get; set; }
-        public string Logo { get; set; } // Agrega el campo para el logo aquí
+        public string FullName { get; set; }
         public string DocumentType { get; set; }
         public string DocumentNumber { get; set; }
     }
 
-    [HttpPost]
-    public IActionResult GenerateReceipt([FromBody] ReceiptData receiptData)
+public class ReceiptController : ControllerBase
     {
-        // Crear HTML con los datos del recibo y el logo
-        string htmlContent = $@"
-            <html>
-                <head>
-                    <title>Recibo</title>
-                </head>
-                <body>
-                    <h1>Recibo</h1>
-                    <img src='{receiptData.Logo}' alt='Logo de Marca' width='200' />
-                    <p>Nombre: {receiptData.FullName}</p>
-                    <p>Tipo de Moneda: {receiptData.Currency}</p>
-                    <p>Monto a Cobrar: {receiptData.Amount}</p>
-                    <p>Título del Recibo: {receiptData.Title}</p>
-                    <p>Descripción: {receiptData.Description}</p>
-                    <p>Dirección: {receiptData.Address}</p>
-                    <p>Tipo de Documento: {receiptData.DocumentType}</p>
-                    <p>Número de Documento: {receiptData.DocumentNumber}</p>
-                    <!-- Agregar más datos aquí -->
-                </body>
-            </html>";
+        private readonly IConverter _pdfConverter;
 
-        // Configurar la conversión de HTML a PDF
-        var pdf = new HtmlToPdfDocument()
+        public ReceiptController(IConverter pdfConverter)
         {
-            GlobalSettings = {
-                PaperSize = PaperKind.A4,
-                Orientation = Orientation.Portrait,
-            },
-            Objects = {
-                new ObjectSettings()
-                {
-                    PagesCount = true,
-                    HtmlContent = htmlContent,
+            _pdfConverter = pdfConverter;
+        }
+
+        [HttpPost]
+        [Route("generateReceipt")]
+        public IActionResult GenerateReceipt([FromBody] ReceiptData receiptData)
+        {
+            // Accede a los datos del recibo utilizando la clase ReceiptData
+
+            string logoUrl = receiptData.Logo;
+            string currency = receiptData.Currency;
+            decimal amount = receiptData.Amount;
+            string title = receiptData.Title;
+            string description = receiptData.Description;
+            string address = receiptData.Address;
+            string fullName = receiptData.FullName;
+            string documentType = receiptData.DocumentType;
+            string documentNumber = receiptData.DocumentNumber;
+
+            // Crear HTML con los datos del recibo
+            string htmlContent = $@"
+                <html>
+                    <head>
+                        <title>Recibo</title>
+                    </head>
+                    <body>
+                        <h1>Recibo</h1>
+                        <img src=""{logoUrl}"" alt=""Logo de Marca"">
+                        <p>Nombre: {fullName}</p>
+                        <p>Tipo de Moneda: {currency}</p>
+                        <p>Monto a Cobrar: {amount}</p>
+                        <p>Título del Recibo: {title}</p>
+                        <p>Descripción: {description}</p>
+                        <p>Dirección: {address}</p>
+                        <p>Tipo de Documento: {documentType}</p>
+                        <p>Número de Documento: {documentNumber}</p>
+                        <!-- Agregar más datos aquí -->
+                    </body>
+                </html>";
+
+            // Configurar la conversión de HTML a PDF
+            var pdf = new HtmlToPdfDocument()
+            {
+                GlobalSettings = {
+                    PaperSize = PaperKind.A4,
+                    Orientation = Orientation.Portrait,
+                },
+                Objects = {
+                    new ObjectSettings()
+                    {
+                        PagesCount = true,
+                        HtmlContent = htmlContent,
+                    }
                 }
-            }
-        };
+            };
 
-        // Convertir HTML a PDF
-        byte[] pdfBytes = _pdfConverter.Convert(pdf);
+            // Convertir HTML a PDF
+            byte[] pdfBytes = _pdfConverter.Convert(pdf);
 
-        // Devolver el PDF como descarga
-        return File(pdfBytes, "application/pdf", "recibo.pdf");
+            // Devolver el PDF como descarga
+            return File(pdfBytes, "application/pdf", "recibo.pdf");
+        }
     }
 }
-
