@@ -1,26 +1,152 @@
 import React, { Component } from 'react';
+import axios from 'axios';
 
 export class Home extends Component {
-  static displayName = Home.name;
+    static displayName = Home.name;
 
-  render() {
-    return (
-      <div>
-        <h1>Hello, world!</h1>
-        <p>Welcome to your new single-page application, built with:</p>
-        <ul>
-          <li><a href='https://get.asp.net/'>ASP.NET Core</a> and <a href='https://msdn.microsoft.com/en-us/library/67ef8sbd.aspx'>C#</a> for cross-platform server-side code</li>
-          <li><a href='https://facebook.github.io/react/'>React</a> for client-side code</li>
-          <li><a href='http://getbootstrap.com/'>Bootstrap</a> for layout and styling</li>
-        </ul>
-        <p>To help you get started, we have also set up:</p>
-        <ul>
-          <li><strong>Client-side navigation</strong>. For example, click <em>Counter</em> then <em>Back</em> to return here.</li>
-          <li><strong>Development server integration</strong>. In development mode, the development server from <code>create-react-app</code> runs in the background automatically, so your client-side resources are dynamically built on demand and the page refreshes when you modify any file.</li>
-          <li><strong>Efficient production builds</strong>. In production mode, development-time features are disabled, and your <code>dotnet publish</code> configuration produces minified, efficiently bundled JavaScript files.</li>
-        </ul>
-        <p>The <code>ClientApp</code> subdirectory is a standard React application based on the <code>create-react-app</code> template. If you open a command prompt in that directory, you can run <code>npm</code> commands such as <code>npm test</code> or <code>npm install</code>.</p>
-      </div>
-    );
-  }
-}
+    constructor(props) {
+        super(props);
+        this.state = {
+            logo: '', // Para almacenar la URL del logo
+            currency: '', // Para almacenar el tipo de moneda
+            amount: '', // Para almacenar el monto a cobrar
+            title: '', // Para almacenar el título del recibo
+            description: '', // Para almacenar la descripción del recibo
+            address: '', // Para almacenar la dirección
+            fullName: '', // Para almacenar el nombre completo
+            documentType: '', // Para almacenar el tipo de documento
+            documentNumber: '', // Para almacenar el número de documento
+        };
+    }
+
+    // Manejar cambios en los campos de entrada
+    handleChange = (event) => {
+        const { name, value } = event.target;
+        this.setState({ [name]: value });
+    };
+
+    // Manejar el envío del formulario
+    handleSubmit = async (event) => {
+        event.preventDefault();
+        try {
+            const response = await axios.post('/api/generateReceipt', this.state);
+            const blob = new Blob([response.data], { type: 'application/pdf' });
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'recibo.pdf';
+            document.body.appendChild(a);
+            a.click();
+            window.URL.revokeObjectURL(url);
+        } catch (error) {
+            console.error('Error al generar el recibo:', error);
+        }
+    };
+
+
+    handleLogoChange = (event) => {
+        const file = event.target.files[0];
+        const reader = new FileReader();
+
+       reader.onloadend = () => {
+          this.setState({ logo: reader.result }); // Almacena la URL de la imagen en el estado
+            };
+
+            if (file) {
+                reader.readAsDataURL(file);
+            }
+        };
+
+       
+    };
+
+render() { 
+        return (
+            <div>
+                <h1>Crear Recibo</h1>
+                <form onSubmit={this.handleSubmit}>
+                    <label>
+                        Logo de Marca:
+                        <input
+                            type="file"
+                            name="logo"
+                            onChange={this.handleLogoChange}
+                        />
+                    </label>
+                    <label>
+                        Tipo de Moneda:
+                        <input
+                            type="text"
+                            name="currency"
+                            value={this.state.currency}
+                            onChange={this.handleChange}
+                        />
+                    </label>
+                    <label>
+                        Monto a Cobrar:
+                        <input
+                            type="text"
+                            name="amount"
+                            value={this.state.amount}
+                            onChange={this.handleChange}
+                        />
+                    </label>
+                    <label>
+                        Título del Recibo:
+                        <input
+                            type="text"
+                            name="title"
+                            value={this.state.title}
+                            onChange={this.handleChange}
+                        />
+                    </label>
+                    <label>
+                        Descripción del Recibo:
+                        <textarea
+                            name="description"
+                            value={this.state.description}
+                            onChange={this.handleChange}
+                        />
+                    </label>
+                    <label>
+                        Dirección:
+                        <input
+                            type="text"
+                            name="address"
+                            value={this.state.address}
+                            onChange={this.handleChange}
+                        />
+                    </label>
+                    <label>
+                        Nombres Completos:
+                        <input
+                            type="text"
+                            name="fullName"
+                            value={this.state.fullName}
+                            onChange={this.handleChange}
+                        />
+                    </label>
+                    <label>
+                        Tipo de Documento:
+                        <input
+                            type="text"
+                            name="documentType"
+                            value={this.state.documentType}
+                            onChange={this.handleChange}
+                        />
+                    </label>
+                    <label>
+                        Número de Documento:
+                        <input
+                            type="text"
+                            name="documentNumber"
+                            value={this.state.documentNumber}
+                            onChange={this.handleChange}
+                        />
+                    </label>
+                    <button type="submit">Generar Recibo</button>
+                </form>
+            </div>
+        );
+    }
+    }
