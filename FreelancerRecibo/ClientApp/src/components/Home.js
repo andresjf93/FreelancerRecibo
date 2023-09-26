@@ -58,9 +58,7 @@ export class Home extends Component {
         };
 
        
-    };
-
-render() { 
+    render() {
         return (
             <div>
                 <h1>Crear Recibo</h1>
@@ -149,4 +147,4 @@ render() {
             </div>
         );
     }
-    }
+}
