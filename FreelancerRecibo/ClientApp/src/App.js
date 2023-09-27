@@ -39,7 +39,7 @@ export default class App extends Component {
     handleSubmit = async (event) => {
         event.preventDefault();
         try {
-            const response = await axios.post('/api/receipts/generateReceipt', this.state);
+            const response = await fetch('/api/recibo/GenerateRecibo', this.state);
             const blob = new Blob([response.data], { type: 'application/pdf' });
             const url = window.URL.createObjectURL(blob);
             const a = document.createElement('a');
