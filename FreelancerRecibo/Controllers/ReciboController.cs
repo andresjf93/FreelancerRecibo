@@ -8,20 +8,22 @@ using Newtonsoft.Json;
 
 namespace FreelancerRecibo.Controllers
 {
-    [Route("api/[controller]")]
+    [Route("api/")]
     [ApiController]
-    public class ReciboController : ControllerBase
+    public class CrearController : ControllerBase
     {
         private readonly IConverter _pdfConverter;
-
-        public ReciboController(IConverter pdfConverter)
+        public CrearController(IConverter pdfConverter )
         {
+                 
             _pdfConverter = pdfConverter;
         }
 
         [HttpPost]
-        public IActionResult GenerateRecibo([FromBody] string jsonData)
+        [Route("PDF")]
+        public IActionResult PDF([FromBody] string jsonData)
         {
+            Console.WriteLine(jsonData);
             // Convertir el JSON a un objeto ReceiptData
             ReceiptData receiptData = JsonConvert.DeserializeObject<ReceiptData>(jsonData);
 
