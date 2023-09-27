@@ -1,7 +1,47 @@
 import React, { useState } from 'react';
 import 'bootstrap/dist/css/bootstrap.min.css';
+import jsPDF from 'jspdf'; // Importa jsPDF
 
 const App = () => {
+    const handleDownloadPDF = () => {
+        // Crea un nuevo documento PDF
+        const pdf = new jsPDF();
+             
+
+        // Agrega contenido al PDF
+        pdf.text(10, 10, 'Factura');
+        pdf.text(20, 20, 'Titulo del Recibo:' + state.title);
+        pdf.text(20, 30, 'Tipo de Moneda:' + state.currency);
+        pdf.text(20, 40, 'Monto a Cobrar: ' + state.amount);
+        pdf.text(20, 50, 'Descripcion del Recibo: ' + state.description);
+        pdf.text(20, 60, 'Direccion: ' + state.address);
+        pdf.text(20, 70, 'Nombres Completos: ' + state.fullName);
+        pdf.text(20, 80, 'Tipo de Documento: ' + state.documentType);
+        pdf.text(20, 90, 'Numero de Documento: ' + state.documentNumber);
+
+        if (state.logo) {
+        pdf.addImage(state.logo, 'JPEG', 10, 90, 50, 50); // Cambia las coordenadas y dimensiones según tu diseño
+    }
+        // Guarda el PDF como un Blob
+        const blob = pdf.output('blob');
+
+        // Crea una URL para el Blob
+        const url = URL.createObjectURL(blob);
+
+        // Crea un enlace para descargar el PDF
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = state.title+'_recibo.pdf'; // Nombre del archivo PDF
+        a.style.display = 'none';
+
+        // Agrega el enlace al DOM y simula un clic para descargar el PDF
+        document.body.appendChild(a);
+        a.click();
+
+        // Limpia la URL y elimina el enlace
+        URL.revokeObjectURL(url);
+        document.body.removeChild(a);
+    };
     const [state, setState] = useState({
         logo: '',
         currency: '',
@@ -77,122 +117,143 @@ const App = () => {
 
     return (
         <>
-            <div className="container  p-3 ">
-                <div className="card text-center m-3  card-body row ">
-                    <h1 className="card-title bg-black text-info d-flex align-items-center justify-content-center ">Crear Recibo</h1>
+            <div className="container p-3">
+                <div className="card text-center m-3 card-body row">
+                    <h1 className="card-title bg-black text-info d-flex align-items-center justify-content-center">Crear Recibo</h1>
 
-                    <form className="border bg-secondary text-white  text-center form-control "
-                        onSubmit={handleSubmit}>
-                        <div className="input-group">
-                            <label htmlFor="title ">Titulo del Recibo:</label>
-                            <input
-                                type="text"
-                                id="title"
-                                name="title"
-                                value={state.title}
-                                onChange={handleChange}
-                            />
+                    <form className="border bg-secondary text-white text-center form-control" onSubmit={handleSubmit}>
+                        <div className="row">
+                            <div className="col-md-6">
+                                <div className="form-group">
+                                    <label htmlFor="title">Titulo del Recibo:</label>
+                                    <input
+                                        type="text"
+                                        id="title"
+                                        name="title"
+                                        value={state.title}
+                                        onChange={handleChange}
+                                        className="form-control"
+                                    />
+                                </div>
+                            </div>
+                            <div className="col-md-6">
+                                <div className="form-group">
+                                    <label className="m-3">Logo de Marca:</label>
+                                    {state.logoPreview ? (
+                                        <img src={state.logoPreview} alt="Logo de Marca" style={{ maxWidth: '100px' }} />
+                                    ) : (
+                                        <input
+                                            type="file"
+                                            name="logo"
+                                            onChange={handleLogoChange}
+                                            className="form-control"
+                                        />
+                                    )}
+                                </div>
+                            </div>
                         </div>
-                        <div className="input-group">
-                            <label>Logo de Marca:</label>
-                            {state.logoPreview ? (
-                                <img
-                                    src={state.logoPreview}
-                                    alt="Logo de Marca"
-                                    style={{ maxWidth: '100px' }}
-                                />
-                            ) : (
-                                <input
-                                    type="file"
-                                    name="logo"
-                                    onChange={handleLogoChange}
-                                />
-                            )}
+
+                        <div className="row">
+                            <div className="col-md-6">
+                                <div className="form-group">
+                                    <label>Tipo de Moneda:</label>
+                                    <select
+                                        name="currency"
+                                        value={state.currency}
+                                        onChange={handleChange}
+                                        className="form-control"
+                                    >
+                                        <option value="">Seleccione una moneda</option>
+                                        {currencyOptions.map((option) => (
+                                            <option key={option.value} value={option.value}>
+                                                {option.label}
+                                            </option>
+                                        ))}
+                                    </select>
+                                </div>
+                            </div>
+                            <div className="col-md-6">
+                                <div className="form-group">
+                                    <label>Monto a Cobrar:</label>
+                                    <input
+                                        type="number"
+                                        name="amount"
+                                        value={state.amount}
+                                        onChange={handleChange}
+                                        step="0.01"
+                                        className="form-control"
+                                    />
+                                </div>
+                            </div>
                         </div>
-                        <div className="input-group">
-                        <label>Tipo de Moneda:</label>
-                        <select
-                            name="currency"
-                            value={state.currency}
-                            onChange={handleChange}
-                        >
-                            <option value="">Seleccione una moneda</option>
-                            {currencyOptions.map((option) => (
-                                <option key={option.value} value={option.value}>
-                                    {option.label}
-                                </option>
-                            ))}
-                        </select>
-                        </div>
-                        <div className="input-group">
-                            <label>
-                                Monto a Cobrar:
-                            </label>
-                            <input
-                                type="number"
-                                name="amount"
-                                value={state.amount}
-                                onChange={handleChange}
-                                step="0.01" // Permite decimales (centavos)
-                            />
-                        </div>
-                        <div className="input-group">
-                            <label>
-                                Descripcion del Recibo:
-                            </label>
+
+                        <div className="form-group">
+                            <label>Descripcion del Recibo:</label>
                             <textarea
                                 name="description"
                                 value={state.description}
                                 onChange={handleChange}
-                            />
-                        
-                        </div>
-                        <div className="input-group">
-                            <label>
-                                Direccion:
-                            </label>
-                            <input
-                                type="text"
-                                name="address"
-                                value={state.address}
-                                onChange={handleChange}
+                                className="form-control"
                             />
                         </div>
-                        <div className="input-group">
-                            <label>
-                                Nombres Completos:
-                            </label>
-                            <input
-                                type="text"
-                                name="fullName"
-                                value={state.fullName}
-                                onChange={handleChange}
-                            />
+
+                        <div className="row">
+                            <div className="col-md-6">
+                                <div className="form-group">
+                                    <label>Direccion:</label>
+                                    <input
+                                        type="text"
+                                        name="address"
+                                        value={state.address}
+                                        onChange={handleChange}
+                                        className="form-control"
+                                    />
+                                </div>
+                            </div>
+                            <div className="col-md-6">
+                                <div className="form-group">
+                                    <label>Nombres Completos:</label>
+                                    <input
+                                        type="text"
+                                        name="fullName"
+                                        value={state.fullName}
+                                        onChange={handleChange}
+                                        className="form-control"
+                                    />
+                                </div>
+                            </div>
                         </div>
-                        <div className="input-group">
-                            <label>
-                                Tipo de Documento:
-                            </label>
-                            <input
-                                type="text"
-                                name="documentType"
-                                value={state.documentType}
-                                onChange={handleChange}
-                            />
+
+                        <div className="row">
+                            <div className="col-md-6">
+                                <div className="form-group">
+                                    <label>Tipo de Documento:</label>
+                                    <input
+                                        type="text"
+                                        name="documentType"
+                                        value={state.documentType}
+                                        onChange={handleChange}
+                                        className="form-control"
+                                    />
+                                </div>
+                            </div>
+                            <div className="col-md-6">
+                                <div className="form-group">
+                                    <label>Numero de Documento:</label>
+                                    <input
+                                        type="text"
+                                        name="documentNumber"
+                                        value={state.documentNumber}
+                                        onChange={handleChange}
+                                        className="form-control"
+                                    />
+                                </div>
+                            </div>
                         </div>
-                           <div>
-                            <label>
-                                Numero de Documento:
-                            </label>
-                            <input
-                                type="text"
-                                name="documentNumber"
-                                value={state.documentNumber}
-                                onChange={handleChange}
-                            />
-                        </div>
-                    
-                        <button className="btn btn-danger m-3 p-2" type="submit">Generar Recibo</button>
+
+                        <button className="btn btn-danger m-3 p-2" type="submit" onClick={handleDownloadPDF}>
+                            Generar y Descargar Recibo PDF
+                        </button>
                     </form>
                 </div>
             </div>
