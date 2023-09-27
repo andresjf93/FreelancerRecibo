@@ -33,6 +33,7 @@ const App = () => {
                 },
                 body: JSON.stringify({state : state }),
             });
+    console.log(response)
             if (response.ok) {
                 const data = await response.json();
                 setState(data);
@@ -43,7 +44,6 @@ const App = () => {
             console.error('Error al generar el recibo:', error);
         }
     };
-
     const handleLogoChange = (event) => {
         const file = event.target.files[0];
         const reader = new FileReader();
@@ -179,6 +179,8 @@ const App = () => {
                                 value={state.documentType}
                                 onChange={handleChange}
                             />
+                        </div>
+                           <div>
                             <label>
                                 Numero de Documento:
                             </label>

@@ -8,10 +8,11 @@ using Newtonsoft.Json;
 
 namespace FreelancerRecibo.Controllers
 {
+
     [Route("api/")]
     [ApiController]
-    public class CrearController : ControllerBase
-    {
+    public class CrearController : Controller
+    { 
         private readonly IConverter _pdfConverter;
         public CrearController(IConverter pdfConverter )
         {
@@ -22,13 +23,13 @@ namespace FreelancerRecibo.Controllers
         [HttpPost]
         [Route("PDF")]
         public IActionResult PDF([FromBody] string jsonData)
-        {
-            Console.WriteLine(jsonData);
+        { 
+                 Console.WriteLine(jsonData);
             // Convertir el JSON a un objeto ReceiptData
             ReceiptData receiptData = JsonConvert.DeserializeObject<ReceiptData>(jsonData);
 
-            // Crear HTML con los datos del recibo
-            string htmlContent = $@"
+        // Crear HTML con los datos del recibo
+        string htmlContent = $@"
         <html>
             <head>
                 <title>Recibo</title>
@@ -53,28 +54,29 @@ namespace FreelancerRecibo.Controllers
             </body>
         </html>";
 
-            // Configurar la conversión de HTML a PDF
-            var pdf = new HtmlToPdfDocument()
-            {
-                GlobalSettings = {
+        // Configurar la conversión de HTML a PDF
+        var pdf = new HtmlToPdfDocument()
+        {
+            GlobalSettings = {
                 PaperSize = PaperKind.A4,
                 Orientation = Orientation.Portrait,
             },
-                Objects = {
+            Objects = {
                 new ObjectSettings()
                 {
                     PagesCount = true,
                     HtmlContent = htmlContent,
                 }
             }
-            };
+        };
 
-            // Convertir HTML a PDF
-            byte[] pdfBytes = _pdfConverter.Convert(pdf);
-            string nombrePDF = "recibo_" + receiptData.FullName + ".pdf";
+        // Convertir HTML a PDF
+        byte[] pdfBytes = _pdfConverter.Convert(pdf);
+        string nombrePDF = "recibo_" + receiptData.FullName + ".pdf";
 
             // Devolver el PDF como descarga
             return File(pdfBytes, "application/pdf", nombrePDF);
-        }
     }
 }
+}
+
