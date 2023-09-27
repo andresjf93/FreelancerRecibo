@@ -20,6 +20,7 @@ namespace FreelancerRecibo
         public void ConfigureServices(IServiceCollection services)
         {
             services.AddControllers();
+            services.AddSingleton(typeof(IConverter), new SynchronizedConverter(new PdfTools()));
         }
 
         public void Configure(IApplicationBuilder app, IWebHostEnvironment env)

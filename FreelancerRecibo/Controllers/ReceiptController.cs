@@ -46,13 +46,13 @@ public class ReceiptController : ControllerBase
 
             // Crear HTML con los datos del recibo
             string htmlContent = $@"
-                <html>
-                    <head>
+                  <html>
+                     <head>
                         <title>Recibo</title>
-                    </head>
-                    <body>
-                        <h1>Recibo</h1>
-                        <img src=""{logoUrl}"" alt=""Logo de Marca"">
+                      </head>
+                        <body>
+                               <h1>Recibo</h1>
+                        <img src=""{logoUrl}"" alt=""Logo de Marca"" style=""max-width: 100px;"" />
                         <p>Nombre: {fullName}</p>
                         <p>Tipo de Moneda: {currency}</p>
                         <p>Monto a Cobrar: {amount}</p>

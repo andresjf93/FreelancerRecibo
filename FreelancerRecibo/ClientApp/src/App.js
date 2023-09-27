@@ -88,7 +88,7 @@ export default class App extends Component {
             <div className="container-fluid">
             <div className="card text-center bg-dark mt-5 card-bpdy" >
                 <h1 className="card-tittle text-info">Crear Recibo</h1>
-                    <form className="row justifi-content-sm-center col-sm-4 text-light"
+                    <form className="row justifi-content-sm-center  text-light"
                         onSubmit={this.handleSubmit}>
                     <label>
                         Titulo del Recibo:
@@ -123,11 +123,12 @@ export default class App extends Component {
                             onChange={this.handleChange}
                         >
                             <option value="">Seleccione una moneda</option>
-                            {currencyOptions.map((option) => (
-                                <option key={option.value} value={option.value}>
-                                    {option.label}
-                                </option>
-                            ))}
+                                {currencyOptions.map((option) => (
+                                    <option key={option.value} value={option.value}>
+                                        {option.label}
+                                    </option>
+                                ))}
+
                         </select>
                     </label>
                     <label>
