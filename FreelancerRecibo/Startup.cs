@@ -44,10 +44,46 @@ namespace FreelancerRecibo
             {
                 endpoints.MapControllerRoute(
                     name: "default",
-                    pattern: "{controller=Home}/{action=Index}/{id?}");
+                    pattern: "{controller}/{action}/{id?}");
                 endpoints.MapControllerRoute(
                     name: "api",
                     pattern: "api/{controller}/{action}");
+            });
+            app.Use(async (context, next) =>
+            {
+                var endpoint = context.GetEndpoint();
+                if (endpoint != null)
+                {
+                    var routePattern = (endpoint as RouteEndpoint)?.RoutePattern;
+                    if (routePattern != null)
+                    {
+                        // Imprimir la ruta en la consola o realizar otro tipo de registro
+                        Console.WriteLine($"Ruta: {routePattern.RawText}");
+                    }
+                }
+                await next();
+            });
+            if (env.IsDevelopment())
+            {
+                app.UseDeveloperExceptionPage();
+            }
+            else
+            {
+                app.UseExceptionHandler("/Home/Error");
+                app.UseHsts();
+            }
+
+            app.UseHttpsRedirection();
+            app.UseStaticFiles();
+            app.UseRouting();
+
+            // ... Configuración de enrutamiento ...
+
+            app.UseEndpoints(endpoints =>
+            {
+                endpoints.MapControllerRoute(
+                    name: "default",
+                    pattern: "{controller}/{action}/{id?}");
             });
         }
     }

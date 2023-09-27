@@ -1,12 +1,16 @@
 const { createProxyMiddleware } = require('http-proxy-middleware');
 const { env } = require('process');
 
-const target = env.ASPNETCORE_HTTPS_PORT ? `https://localhost:${env.ASPNETCORE_HTTPS_PORT}` :
-  env.ASPNETCORE_URLS ? env.ASPNETCORE_URLS.split(';')[0] : 'http://localhost:51768';
+// Configurar el destino del proxy basado en la variable de entorno ASPNETCORE_HTTPS_PORT o ASPNETCORE_URLS
+const target = env.ASPNETCORE_HTTPS_PORT
+    ? `https://localhost:${env.ASPNETCORE_HTTPS_PORT}`
+    : env.ASPNETCORE_URLS
+        ? env.ASPNETCORE_URLS.split(';')[0]
+        : 'http://localhost:51768';
 
-const context =  [
+const context = [
     "/weatherforecast",
-    "api/recibo"
+    "/api/recibo"
 ];
 
 module.exports = function(app) {

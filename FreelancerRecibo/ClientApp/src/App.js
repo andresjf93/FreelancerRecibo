@@ -1,57 +1,51 @@
-
 import React, { Component } from 'react';
-import axios from 'axios';
-import 'bootstrap/dist/css/bootstrap.min.css'
+import 'bootstrap/dist/css/bootstrap.min.css';
 
 export default class App extends Component {
-  static displayName = App.name;
-      constructor(props) {
+    constructor(props) {
         super(props);
         this.state = {
-            logo: '', // Para almacenar la URL del logo
-            currency: '', // Para almacenar el tipo de moneda
-            amount: '', // Para almacenar el monto a cobrar
-            title: '', // Para almacenar el título del recibo
-            description: '', // Para almacenar la descripción del recibo
-            address: '', // Para almacenar la dirección
-            fullName: '', // Para almacenar el nombre completo
-            documentType: '', // Para almacenar el tipo de documento
-            documentNumber: '', // Para almacenar el número de documento
-            logoPreview: null, // Para mostrar la vista previa del logo
+            logo: '',
+            currency: '',
+            amount: '',
+            title: '',
+            description: '',
+            address: '',
+            fullName: '',
+            documentType: '',
+            documentNumber: '',
+            logoPreview: null,
         };
     }
 
-    // Manejar cambios en los campos de entrada
     handleChange = (event) => {
         const { name, value } = event.target;
         this.setState({ [name]: value });
+
         if (name === 'amount' && parseFloat(value) < 0) {
-            // Si es negativo, establecer el valor en cero
             this.setState({ [name]: '0' });
-        } else {
-            // Si es un valor no negativo, actualizar el estado normalmente
-            this.setState({ [name]: value });
         }
-
     };
-
-    // Manejar el envío del formulario
     handleSubmit = async (event) => {
         event.preventDefault();
         try {
-            const response = await fetch('/api/recibo/GenerateRecibo', this.state);
-            const blob = new Blob([response.data], { type: 'application/pdf' });
-            const url = window.URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.href = url;
-            a.download = 'recibo.pdf';
-            document.body.appendChild(a);
-            a.click();
-            window.URL.revokeObjectURL(url);
+            const response = await fetch('http://localhost:44415/api/Recibo/GenerateRecibo', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({}),
+            });
+            if (response.status === 200) {
+                const blob = await response.json();
+                console.log(blob);
+            } else {
+                console.error('Error al generar el recibo. Código de estado:', response.status);
+            }
         } catch (error) {
             console.error('Error al generar el recibo:', error);
         }
-    };
+    }
     handleLogoChange = (event) => {
         const file = event.target.files[0];
         const reader = new FileReader();
@@ -64,7 +58,6 @@ export default class App extends Component {
             reader.readAsDataURL(file);
         }
     };
-
 
     render() {
         const currencyOptions = [
@@ -85,54 +78,56 @@ export default class App extends Component {
             { value: 'COP', label: 'Peso colombiano (COP)' },
         ];
         return (
-            <div className="container-fluid">
-            <div className="card text-center bg-dark mt-5 card-bpdy" >
-                <h1 className="card-tittle text-info">Crear Recibo</h1>
-                    <form className="row justifi-content-sm-center  text-light"
-                        onSubmit={this.handleSubmit}>
-                    <label>
-                        Titulo del Recibo:
-                        <input
-                            type="text"
-                            name="title"
-                            value={this.state.title}
-                            onChange={this.handleChange}
-                        />
-                    </label>
-                    <label>
-                        Logo de Marca:
-                        {this.state.logoPreview ? (
-                            <img
-                                src={this.state.logoPreview}
-                                alt="Logo de Marca"
-                                style={{ maxWidth: '100px' }}
-                            />
-                        ) : (
-                            <input
-                                type="file"
-                                name="logo"
-                                onChange={this.handleLogoChange}
-                            />
-                        )}
-                    </label>
-                    <label>
-                        Tipo de Moneda:
-                        <select
-                            name="currency"
-                            value={this.state.currency}
-                            onChange={this.handleChange}
-                        >
-                            <option value="">Seleccione una moneda</option>
-                                {currencyOptions.map((option) => (
-                                    <option key={option.value} value={option.value}>
-                                        {option.label}
-                                    </option>
-                                ))}
+            <>
+                <div className="container">
+                    <div className="card text-center m-3 p-3 card-body">
+                        <h1 className="card-title bg-black text-info">Crear Recibo</h1>
 
-                        </select>
-                    </label>
-                    <label>
+                        <form className="border bg-secondary text-white flex-column" onSubmit={this.handleSubmit}>
+                            <div>
+                                <label>Titulo del Recibo:</label>
+                                <input
+                                    type="text"
+                                    name="title"
+                                    value={this.state.title}
+                                    onChange={this.handleChange}
+                                />
+                            </div>
+                            <div>
+                                <label>Logo de Marca:</label>
+                                {this.state.logoPreview ? (
+                                    <img
+                                        src={this.state.logoPreview}
+                                        alt="Logo de Marca"
+                                        style={{ maxWidth: '100px' }}
+                                    />
+                                ) : (
+                                    <input
+                                        type="file"
+                                        name="logo"
+                                        onChange={this.handleLogoChange}
+                                    />
+                                )}
+                            </div>
+                            <div>
+                                <label>Tipo de Moneda:</label>
+                                <select
+                                    name="currency"
+                                    value={this.state.currency}
+                                    onChange={this.handleChange}
+                                >
+                                    <option value="">Seleccione una moneda</option>
+                                    {currencyOptions.map((option) => (
+                                        <option key={option.value} value={option.value}>
+                                            {option.label}
+                                        </option>
+                                    ))}
+                                </select>
+                            </div>
+                    <div>
+                            <label>
                         Monto a Cobrar:
+                            </label>
                         <input
                             type="number"
                             name="amount"
@@ -140,56 +135,67 @@ export default class App extends Component {
                             onChange={this.handleChange}
                             step="0.01" // Permite decimales (centavos)
                         />
-                    </label>
+                            </div>
+                    <div>
                     <label>
                         Descripcion del Recibo:
+                            </label>
                         <textarea
                             name="description"
                             value={this.state.description}
                             onChange={this.handleChange}
-                        />
-                    </label>
+                                />
+                        </div>
+                            <div>
                     <label>
                         Direccion:
+                            </label>
                         <input
                             type="text"
                             name="address"
                             value={this.state.address}
                             onChange={this.handleChange}
                         />
-                    </label>
+                            </div>
+                            <div>
                     <label>
                         Nombres Completos:
+                            </label>
                         <input
                             type="text"
                             name="fullName"
                             value={this.state.fullName}
                             onChange={this.handleChange}
                         />
-                    </label>
+                            </div>
+                            <div>
                     <label>
                         Tipo de Documento:
+                            </label>
                         <input
                             type="text"
                             name="documentType"
                             value={this.state.documentType}
                             onChange={this.handleChange}
                         />
-                    </label>
+                            </div>
+                            <div>
                     <label>
                         Numero de Documento:
+                            </label>
                         <input
                             type="text"
                             name="documentNumber"
                             value={this.state.documentNumber}
                             onChange={this.handleChange}
                         />
-                    </label>
-                    <button className="btn btn-danger" type="submit">Generar Recibo</button>
+                            </div>
+                        
+                        <button className="btn btn-danger m-3 p-2" type="submit">Generar Recibo</button>
                     </form>
                 </div>
-            </div>
-            
+            </div >
+            </>
         );
     }
 }
