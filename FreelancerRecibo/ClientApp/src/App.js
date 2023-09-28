@@ -23,27 +23,50 @@ const App = () => {
             setState({ ...state, [name]: '0' });
         }
     };
-
     const handleSubmit = async (event) => {
         event.preventDefault();
-        try {
-            const response = await fetch("/api/crear/GenerarPDF", {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json;charset=utf-8',
-                },
-                body: JSON.stringify({ state: state }),
+
+        // Generar el contenido HTML a partir del estado
+        let htmlContent = `
+        <div>
+            <h1>${state.title}</h1>
+            <p>${state.description}</p>
+            <p>Moneda: ${state.currency}</p>
+            <p>Monto: ${state.amount}</p>
+            <p>Dirección: ${state.address}</p>
+            <p>Nombre completo: ${state.fullName}</p>
+            <p>Tipo de documento: ${state.documentType}</p>
+            <p>Número de documento: ${state.documentNumber}</p>
+        </div>
+    `;
+
+        // El resto de tu código...
+    
+
+        const response = await fetch('/api/Crear/GenerarPDF', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(htmlContent)
+        })
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error("HTTP error " + response.status);
+                }
+                return response.blob();
+            })
+            .then(blob => {
+                // Crear un enlace para descargar el archivo PDF
+                let url = window.URL.createObjectURL(blob);
+                let a = document.createElement('a');
+                a.href = url;
+                a.download = 'recibo.pdf';
+                a.click();
+            })
+            .catch(error => {
+                console.log('Error al generar el PDF: ' + error);
             });
-            console.log(response);
-            if (response.ok) {
-                // Aquí puedes realizar alguna acción después de generar el PDF, si es necesario.
-                // Por ejemplo, mostrar un mensaje de éxito o redirigir a otra página.
-            } else {
-                console.error('Error al generar el recibo. Código de estado:', response.status);
-            }
-        } catch (error) {
-            console.error('Error al generar el recibo:', error);
-        }
     };
 
     const handleLogoChange = (event) => {
@@ -63,7 +86,18 @@ const App = () => {
         { value: 'PEN', label: 'Sol peruano (PEN)' },
         { value: 'USD', label: 'Dolar estadounidense (USD)' },
         { value: 'EUR', label: 'Euro (EUR)' },
-        // ... Otras opciones de moneda
+        { value: 'GBP', label: 'Libra esterlina (GBP)' },
+        { value: 'JPY', label: 'Yen japones (JPY)' },
+        { value: 'CAD', label: 'Dolar canadiense (CAD)' },
+        { value: 'AUD', label: 'Dolar australiano (AUD)' },
+        { value: 'CHF', label: 'Franco suizo (CHF)' },
+        { value: 'CNY', label: 'Yuan chino (CNY)' },
+        { value: 'INR', label: 'Rupia india (INR)' },
+        { value: 'BRL', label: 'Real brasileno (BRL)' },
+        { value: 'ZAR', label: 'Rand sudafricano (ZAR)' },
+        { value: 'ARS', label: 'Peso argentino (ARS)' },
+        { value: 'MXN', label: 'Peso mexicano (MXN)' },
+        { value: 'COP', label: 'Peso colombiano (COP)' },
     ];
 
     return (

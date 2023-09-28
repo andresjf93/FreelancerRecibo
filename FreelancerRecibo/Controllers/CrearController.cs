@@ -1,10 +1,8 @@
-﻿using Microsoft.AspNetCore.Http.Extensions;
+﻿
 using Microsoft.AspNetCore.Mvc;
 using DinkToPdf;
 using DinkToPdf.Contracts;
-using System.Drawing;
-using FreelancerRecibo.Models;
-using Newtonsoft.Json;
+
 
 namespace FreelancerRecibo.Controllers
 {
@@ -19,7 +17,8 @@ namespace FreelancerRecibo.Controllers
             _pdfConverter = pdfConverter;
         }
 
-        [HttpPost("GenerarPDF")]
+        [HttpPost]
+        [Route("GenerarPDF")]
         public IActionResult GenerarPDF([FromBody] string htmlContent)
         {
             try

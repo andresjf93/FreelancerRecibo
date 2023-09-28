@@ -21,6 +21,17 @@ namespace FreelancerRecibo
         {
             services.AddControllers();
             services.AddSingleton(typeof(IConverter), new SynchronizedConverter(new PdfTools()));
+        
+        
+            services.AddCors(options =>
+            {
+                options.AddPolicy("AllowMyOrigin",
+                    builder => builder.WithOrigins("http://localhost:44415")
+                                      .AllowAnyHeader()
+                                      .AllowAnyMethod());
+            });
+
+            // ...
         }
 
         public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
@@ -85,6 +96,11 @@ namespace FreelancerRecibo
                     name: "default",
                     pattern: "{controller}/{action}/{id?}");
             });
+       
+            app.UseCors("AllowMyOrigin");
+
+            // ...
         }
+
     }
 }
