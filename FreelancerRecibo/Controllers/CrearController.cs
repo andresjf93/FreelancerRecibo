@@ -23,7 +23,6 @@ namespace FreelancerRecibo.Controllers
         {
             try
             {
-                // Configuración para la conversión HTML a PDF
                 var globalSettings = new GlobalSettings
                 {
                     PaperSize = PaperKind.A4,
@@ -43,10 +42,8 @@ namespace FreelancerRecibo.Controllers
                     Objects = { objectSettings },
                 };
 
-                // Generar el PDF
                 var pdfBytes = _pdfConverter.Convert(pdfDocument);
 
-                // Devolver el PDF como descarga
                 return File(pdfBytes, "application/pdf", "recibo.pdf");
             }
             catch (Exception ex)

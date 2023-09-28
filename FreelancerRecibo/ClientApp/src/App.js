@@ -1,7 +1,84 @@
-import React, { useState } from 'react';
+﻿import React, { useState } from 'react';
 import 'bootstrap/dist/css/bootstrap.min.css';
+import jsPDF from 'jspdf'; // Importa jsPDF
+import 'jspdf-autotable';
 
 const App = () => {
+
+    const handleSubmit = () => {
+    // Crea un nuevo documento PDF
+    const pdf = new jsPDF();
+
+    // Logo
+        if (state.logo) {
+            const logoWidth = 30; // Adjust the width as needed
+            const logoHeight = 20; // Adjust the height as needed
+            pdf.addImage(state.logo, 'JPEG', 130, 70, logoWidth, logoHeight);
+        }
+
+        // Add a horizontal line after the logo (adjust coordinates as needed)
+        pdf.line(50, 60, 110, 60);
+
+        // Add the header section
+        pdf.setFontSize(14);
+        pdf.text(20, 70, 'Recibo de Pago');
+
+        // Add the recipient information (e.g., customer's name and address)
+        pdf.setFontSize(12);
+        pdf.text(20, 90, ''+ state.title);
+        pdf.text(20, pdf.autoTableEndPosY() + 100, 'Nombre: ' + state.fullName);
+        pdf.text(20, pdf.autoTableEndPosY() + 110, '' + state.documentType + ': ' + state.documentNumber);
+        pdf.text(20, pdf.autoTableEndPosY() + 120, 'Direccion: ' + state.address);
+
+        // Add a horizontal line after the recipient information
+        pdf.line(20, 130, 190, 120);
+
+        // Define the table for line items
+        const tableHeaders = ['Descripcion', 'Monto'];
+        const tableData = [
+            ['Concepto: ' + state.description, state.currency + state.amount],
+            // Puedes agregar más elementos de línea según sea necesario
+        ];
+
+        // Define estilos para la tabla
+        const styles = {
+            cellWidth: 'wrap', // Ajusta automáticamente los anchos de columna según el contenido
+            fontSize: 12,
+        };
+
+        // Agrega la tabla utilizando la función autoTable
+        pdf.autoTable({
+            startY: 140,
+            head: [tableHeaders],
+            body: tableData,
+            theme: 'striped',
+            styles: styles, // Usa la opción 'styles' para establecer los anchos de columna
+        });
+
+        // Agrega una línea horizontal después de la tabla
+        pdf.line(20, pdf.autoTableEndPosY() + 5, 190, pdf.autoTableEndPosY() + 5);
+
+       
+    // Guarda el PDF como un Blob
+    const blob = pdf.output('blob');
+
+    // Crea una URL para el Blob
+    const url = URL.createObjectURL(blob);
+
+    // Crea un enlace para descargar el PDF
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = state.title+'_recibo.pdf'; // Nombre del archivo PDF
+    a.style.display = 'none';
+
+    // Agrega el enlace al DOM y simula un clic para descargar el PDF
+    document.body.appendChild(a);
+    a.click();
+
+    // Limpia la URL y elimina el enlace
+    URL.revokeObjectURL(url);
+    document.body.removeChild(a);
+};
     const [state, setState] = useState({
         logo: '',
         currency: '',
@@ -23,51 +100,7 @@ const App = () => {
             setState({ ...state, [name]: '0' });
         }
     };
-    const handleSubmit = async (event) => {
-        event.preventDefault();
-
-        // Generar el contenido HTML a partir del estado
-        let htmlContent = `
-        <div>
-            <h1>${state.title}</h1>
-            <p>${state.description}</p>
-            <p>Moneda: ${state.currency}</p>
-            <p>Monto: ${state.amount}</p>
-            <p>Direcci�n: ${state.address}</p>
-            <p>Nombre completo: ${state.fullName}</p>
-            <p>Tipo de documento: ${state.documentType}</p>
-            <p>N�mero de documento: ${state.documentNumber}</p>
-        </div>
-    `;
-
-        // El resto de tu c�digo...
-    
-
-        const response = await fetch('/api/Crear/GenerarPDF', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify(htmlContent)
-        })
-            .then(response => {
-                if (!response.ok) {
-                    throw new Error("HTTP error " + response.status);
-                }
-                return response.blob();
-            })
-            .then(blob => {
-                // Crear un enlace para descargar el archivo PDF
-                let url = window.URL.createObjectURL(blob);
-                let a = document.createElement('a');
-                a.href = url;
-                a.download = 'recibo.pdf';
-                a.click();
-            })
-            .catch(error => {
-                console.log('Error al generar el PDF: ' + error);
-            });
-    };
+   
 
     const handleLogoChange = (event) => {
         const file = event.target.files[0];
@@ -83,23 +116,31 @@ const App = () => {
     };
 
     const currencyOptions = [
-        { value: 'PEN', label: 'Sol peruano (PEN)' },
-        { value: 'USD', label: 'Dolar estadounidense (USD)' },
-        { value: 'EUR', label: 'Euro (EUR)' },
-        { value: 'GBP', label: 'Libra esterlina (GBP)' },
-        { value: 'JPY', label: 'Yen japones (JPY)' },
-        { value: 'CAD', label: 'Dolar canadiense (CAD)' },
-        { value: 'AUD', label: 'Dolar australiano (AUD)' },
+        { value: 'S/', label: 'Sol peruano (PEN)' },
+        { value: '$', label: 'Dolar estadounidense (USD)' },
+        { value: '€', label: 'Euro (EUR)' },
+        { value: '£', label: 'Libra esterlina (GBP)' },
+        { value: '¥', label: 'Yen japones (JPY)' },
+        { value: 'C$', label: 'Dolar canadiense (CAD)' },
+        { value: 'A$', label: 'Dolar australiano (AUD)' },
         { value: 'CHF', label: 'Franco suizo (CHF)' },
-        { value: 'CNY', label: 'Yuan chino (CNY)' },
-        { value: 'INR', label: 'Rupia india (INR)' },
-        { value: 'BRL', label: 'Real brasileno (BRL)' },
-        { value: 'ZAR', label: 'Rand sudafricano (ZAR)' },
-        { value: 'ARS', label: 'Peso argentino (ARS)' },
-        { value: 'MXN', label: 'Peso mexicano (MXN)' },
-        { value: 'COP', label: 'Peso colombiano (COP)' },
+        { value: '¥', label: 'Yuan chino (CNY)' },
+        { value: '₹', label: 'Rupia india (INR)' },
+        { value: 'R$', label: 'Real brasileno (BRL)' },
+        { value: 'R', label: 'Rand sudafricano (ZAR)' },
+        { value: '$', label: 'Peso argentino (ARS)' },
+        { value: 'Mex$', label: 'Peso mexicano (MXN)' },
+        { value: 'Cop$', label: 'Peso colombiano (COP)' },
     ];
+    const DocumentOptions = [
+        { value: 'DNI', label: 'DNI (Documento Nacional de Identidad)' },
+        { value: 'CARNET', label: 'Carnet de Identidad' },
+        { value: 'PASAPORTE', label: 'Pasaporte' },
+        { value: 'RUC', label: 'RUC (Registro Único de Contribuyentes)' },
+        { value: 'CE', label: 'Carnet de extrangeria' },
 
+        
+    ];
     return (
         <div className="container mt-5">
             <div className="card">
@@ -213,13 +254,19 @@ const App = () => {
                             <div className="col-md-6">
                                 <div className="form-group">
                                     <label>Tipo de Documento:</label>
-                                    <input
-                                        type="text"
+                                    <select
                                         name="documentType"
                                         value={state.documentType}
                                         onChange={handleChange}
                                         className="form-control"
-                                    />
+                                    >
+                                        <option value="">Seleccione un tipo de documento</option>
+                                        {DocumentOptions.map((option) => (
+                                            <option key={option.value} value={option.value}>
+                                                {option.label}
+                                            </option>
+                                        ))}
+                                    </select>
                                 </div>
                             </div>
                             <div className="col-md-6">
