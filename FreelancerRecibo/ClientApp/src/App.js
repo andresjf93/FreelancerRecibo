@@ -31,7 +31,7 @@ const App = () => {
         pdf.text(20, pdf.autoTableEndPosY() + 120, 'Direccion: ' + state.address);
 
         // Add a horizontal line after the recipient information
-        pdf.line(20, 130, 190, 120);
+        pdf.line(20, 130, 190, 130);
 
         // Define the table for line items
         const tableHeaders = ['Descripcion', 'Monto'];
