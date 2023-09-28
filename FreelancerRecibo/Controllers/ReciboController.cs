@@ -8,75 +8,52 @@ using Newtonsoft.Json;
 
 namespace FreelancerRecibo.Controllers
 {
-
-    [Route("api/")]
+    [Route("api/[controller]")]
     [ApiController]
-    public class CrearController : Controller
-    { 
+    public class CrearController : ControllerBase
+    {
         private readonly IConverter _pdfConverter;
-        public CrearController(IConverter pdfConverter )
+
+        public CrearController(IConverter pdfConverter)
         {
-                 
             _pdfConverter = pdfConverter;
         }
 
-        [HttpPost]
-        [Route("PDF")]
-        public IActionResult PDF([FromBody] string jsonData)
-        { 
-                 Console.WriteLine(jsonData);
-            // Convertir el JSON a un objeto ReceiptData
-            ReceiptData receiptData = JsonConvert.DeserializeObject<ReceiptData>(jsonData);
-
-        // Crear HTML con los datos del recibo
-        string htmlContent = $@"
-        <html>
-            <head>
-                <title>Recibo</title>
-            </head>
-            <body>
-                 <center>
-                    <br />
-                <h1>Recibo</h1>
-                <img src=""{receiptData.Logo}"" alt=""Logo de Marca"" style=""max-width: 100px;"" />
-                <br />
-                <table>
-                <p>Nombre: {receiptData.FullName}</p>
-                <p>Tipo de Moneda: {receiptData.Currency}</p>
-                <p>Monto a Cobrar: {receiptData.Amount}</p>
-                <p>Título del Recibo: {receiptData.Title}</p>
-                <p>Descripción: {receiptData.Description}</p>
-                <p>Dirección: {receiptData.Address}</p>
-                <p>Tipo de Documento: {receiptData.DocumentType}</p>
-                <p>Número de Documento: {receiptData.DocumentNumber}</p>
-                </table>
-                </center>
-            </body>
-        </html>";
-
-        // Configurar la conversión de HTML a PDF
-        var pdf = new HtmlToPdfDocument()
+        [HttpPost("GenerarPDF")]
+        public IActionResult GenerarPDF([FromBody] string htmlContent)
         {
-            GlobalSettings = {
-                PaperSize = PaperKind.A4,
-                Orientation = Orientation.Portrait,
-            },
-            Objects = {
-                new ObjectSettings()
+            try
+            {
+                // Configuración para la conversión HTML a PDF
+                var globalSettings = new GlobalSettings
+                {
+                    PaperSize = PaperKind.A4,
+                    Orientation = Orientation.Portrait,
+                };
+
+                var objectSettings = new ObjectSettings
                 {
                     PagesCount = true,
                     HtmlContent = htmlContent,
-                }
+                    WebSettings = { DefaultEncoding = "utf-8" },
+                };
+
+                var pdfDocument = new HtmlToPdfDocument()
+                {
+                    GlobalSettings = globalSettings,
+                    Objects = { objectSettings },
+                };
+
+                // Generar el PDF
+                var pdfBytes = _pdfConverter.Convert(pdfDocument);
+
+                // Devolver el PDF como descarga
+                return File(pdfBytes, "application/pdf", "recibo.pdf");
             }
-        };
-
-        // Convertir HTML a PDF
-        byte[] pdfBytes = _pdfConverter.Convert(pdf);
-        string nombrePDF = "recibo_" + receiptData.FullName + ".pdf";
-
-            // Devolver el PDF como descarga
-            return File(pdfBytes, "application/pdf", nombrePDF);
+            catch (Exception ex)
+            {
+                return BadRequest($"Error al generar el PDF: {ex.Message}");
+            }
+        }
     }
 }
-}
-
