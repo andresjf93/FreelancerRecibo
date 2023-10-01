@@ -23,84 +23,140 @@ export class Recibo extends Component {
     handleSubmit = async (event) => {
         event.preventDefault();
 
-        // Crea un nuevo documento PDF en formato A4 (595x842 puntos)
-        const pdfDoc = await PDFDocument.create();
+       const pdfDoc = await PDFDocument.create();
         const page = pdfDoc.addPage([595, 842]);
 
-        // Dibuja el contenido en la página
-        const { width, height } = page.getSize();
-        const fontSize = 12;
-        const margin = 50; // Margen izquierdo
-        let y = height - margin;
+    // Agrega un logo (ajusta las coordenadas y dimensiones según sea necesario)
+        if (this.state.logo) {
+            const logoImage = await pdfDoc.embedJpg(this.state.logo);
+        const logoDims = logoImage.scale(0.2);
+        page.drawImage(logoImage, {
+            x: 230,
+            y: 700,
+            width: logoDims.width,
+            height: logoDims.height,
+        });
+    }
 
-        // Definir una función para dibujar una fila de la tabla
-        const drawTableRow = (label, value) => {
-            page.drawText(label, {
-                x: margin,
-                y,
-                size: fontSize,
-                color: rgb(0, 0, 0), // Color de texto negro
-            });
-            page.drawText(value, {
-                x: margin + 200, // Alinea el valor a la derecha
-                y,
-                size: fontSize,
+    page.drawLine({
+        start: { x: 50, y: 690 },
+        end: { x: 500, y: 690 },
+        thickness: 1,
+        color: rgb(0, 0, 0),
+    });
+
+    page.drawText('Recibo de Pago', {
+        x: 250,
+        y: 670,
+        size: 14,
+        color: rgb(0, 0, 0),
+    });
+
+        page.drawText(this.state.title, {
+        x: 50,
+        y: 650,
+        size: 12,
+        color: rgb(0, 0, 0),
+    });
+        page.drawText(`Nombre: ${this.state.fullName}`, {
+        x: 50,
+            y: 580,
+        size: 12,
+        color: rgb(0, 0, 0),
+    });
+        page.drawText(`${this.state.documentType}: ${this.state.documentNumber}`, {
+        x: 50,
+        y: 550,
+        size: 12,
+        color: rgb(0, 0, 0),
+    });
+        page.drawText(`Dirección: ${this.state.address}`, {
+        x: 50,
+        y: 530,
+        size: 12,
+        color: rgb(0, 0, 0),
+    });
+
+    // Agrega una línea horizontal después de la información del destinatario
+    page.drawLine({
+        start: { x: 50, y: 500 },
+        end: { x: 500, y: 500 },
+        thickness: 1,
+        color: rgb(0, 0, 0),
+    });
+
+    // Define los datos de la tabla de línea de artículos
+    const tableData = [
+        ['Descripción', 'Monto'],
+        [this.state.description, `${this.state.currency} ${this.state.amount}`],
+        // Puedes agregar más elementos de línea según sea necesario
+    ];
+        // Establece las coordenadas iniciales de la tabla
+        let tableX = 30;
+        let tableY = 450;
+
+        // Define el ancho de las columnas
+        const columnWidth = 260;
+
+        // Define estilos para la tabla
+        const tableStyle = {
+            fontSize: 12,
+            padding: 5,
+            color: rgb(0, 0, 0),
+        };
+        const tableWidth = columnWidth * 2;
+        const tableHeight = (tableData.length + 1) * 20; // Altura de la tabla más una fila para los encabezados
+        const bgColor = rgb(240 / 255, 240 / 255, 240 / 255); // Color de fondo gris claro
+
+        page.drawRectangle({
+            x: tableX,
+            y: tableY - tableHeight,
+            width: tableWidth,
+            height: tableHeight,
+            color: bgColor, // Color de fondo de la tabla (gris claro)
+            borderColor: rgb(0, 0, 0), // Color del borde de la tabla (negro en este ejemplo)
+            borderWidth: 1, // Ancho del borde
+        });
+        // Dibuja los bordes de la tabla
+        for (let i = 0; i <= tableData.length - 1; i++) {
+            page.drawLine({
+                start: { x: tableX, y: tableY - i * 20 },
+                end: { x: tableX + columnWidth * 2, y: tableY - i * 20 },
+                thickness: 1,
                 color: rgb(0, 0, 0),
             });
-            y -= 20; // Espacio entre filas
-        };
-
-        // Agregar el logo (si está presente)
-        if (this.state.logoPreview) {
-            const logoImage = await pdfDoc.embedJpg(this.state.logoPreview);
-            const logoDims = logoImage.scale(0.2); // Ajusta el tamaño de la imagen según tus necesidades
-            page.drawImage(logoImage, {
-                x: margin,
-                y: height - margin - logoDims.height,
-                width: logoDims.width,
-                height: logoDims.height,
-                rotate: degrees(0), // Rotación de la imagen (0 grados en este caso)
-            });
-            y -= logoDims.height + 10; // Espacio después de agregar el logo
         }
 
-        // Agregar el título de la factura
-        page.drawText('Factura', {
-            x: margin + 200, // Alinea el título al centro
-            y,
-            size: fontSize + 4, // Tamaño de fuente más grande para el título
-            color: rgb(0, 0, 0),
+        // Dibuja los datos de la tabla
+        tableData.forEach((row, rowIndex) => {
+            row.forEach((cell, columnIndex) => {
+                page.drawText(cell, {
+                    x: tableX + columnIndex * columnWidth,
+                    y: tableY - rowIndex * 20 - 15, // Alinea verticalmente el texto en el centro de la celda
+                    size: 12,
+                    color: rgb(0, 0, 0),
+                });
+            });
         });
-        y -= 40;
 
-    // Agregar filas a la "tabla" con los datos
-    drawTableRow('Título del Recibo:', this.state.title || 'Título no especificado');
-    drawTableRow('Tipo de Moneda:', this.state.currency || 'Moneda no especificada');
-    drawTableRow('Monto a Cobrar:', this.state.amount || '0');
-    drawTableRow('Descripción del Recibo:', this.state.description || 'Descripción no especificada');
-    drawTableRow('Dirección:', this.state.address || 'Dirección no especificada');
-    drawTableRow('Nombres Completos:', this.state.fullName || 'Nombre no especificado');
-    drawTableRow('Tipo de Documento:', this.state.documentType || 'Tipo de Documento no especificado');
-    drawTableRow('Número de Documento:', this.state.documentNumber || 'Número de Documento no especificado');
+     
+    // Guarda el PDF como un Blob
     const pdfBytes = await pdfDoc.save();
 
-    // Convierte los bytes en un Blob
-    const pdfBlob = new Blob([pdfBytes], { type: 'application/pdf' });
-
     // Crea una URL para el Blob
-    const pdfUrl = URL.createObjectURL(pdfBlob);
+    const pdfUrl = URL.createObjectURL(new Blob([pdfBytes], { type: 'application/pdf' }));
 
     // Crea un enlace para descargar el PDF
     const a = document.createElement('a');
     a.href = pdfUrl;
-    a.download = 'factura.pdf'; // Puedes configurar aquí el nombre del archivo
+        a.download = `${this.state.title}_recibo.pdf`; // Nombre del archivo PDF
     a.style.display = 'none';
 
-    // Agrega el enlace al DOM y simula un clic
+    // Agrega el enlace al DOM y simula un clic para descargar el PDF
     document.body.appendChild(a);
     a.click();
 
-    // Limpia después de la descarga
+    // Limpia la URL y elimina el enlace
     URL.revokeObjectURL(pdfUrl);
     document.body.removeChild(a);
 };
@@ -141,7 +197,7 @@ export class Recibo extends Component {
         { value: '₹', label: 'Rupia india (INR)' },
         { value: 'R$', label: 'Real brasileno (BRL)' },
         { value: 'R', label: 'Rand sudafricano (ZAR)' },
-        { value: '$', label: 'Peso argentino (ARS)' },
+        { value: 'ARG$', label: 'Peso argentino (ARS)' },
         { value: 'Mex$', label: 'Peso mexicano (MXN)' },
         { value: 'Cop$', label: 'Peso colombiano (COP)' },
     ];
