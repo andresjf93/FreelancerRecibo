@@ -1,10 +1,19 @@
 import React from 'react';
-import  reactDOM from 'react-dom/client';
+import ReactDOM from 'react-dom'; // Importa ReactDOM en lugar de reactDOM
+import { BrowserRouter } from 'react-router-dom'; // Importa BrowserRouter
 import App from './App';
 
-const root = reactDOM.createRoot(document.getElementById("root"));
+const baseUrl = process.env.PUBLIC_URL; // Agrega una definición para baseUrl si es necesario
+
+const root = ReactDOM.createRoot(document.getElementById("root"));
 
 root.render(
-    <App />
+    <BrowserRouter basename={baseUrl}>
+        <App />
+    </BrowserRouter>
+);
 
-) 
+
+
+
+

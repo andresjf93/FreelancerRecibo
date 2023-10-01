@@ -1,8 +1,11 @@
-﻿
+﻿using System;
+using System.Linq;
+using System.Threading.Tasks;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using DinkToPdf;
 using DinkToPdf.Contracts;
-
+using FreelancerRecibo.Models;
 
 namespace FreelancerRecibo.Controllers
 {
@@ -11,10 +14,12 @@ namespace FreelancerRecibo.Controllers
     public class CrearController : ControllerBase
     {
         private readonly IConverter _pdfConverter;
+        private readonly DatosClienteContext _dbContext;
 
-        public CrearController(IConverter pdfConverter)
+        public CrearController(IConverter pdfConverter, DatosClienteContext dbContext)
         {
             _pdfConverter = pdfConverter;
+            _dbContext = dbContext;
         }
 
         [HttpPost]
@@ -49,6 +54,25 @@ namespace FreelancerRecibo.Controllers
             catch (Exception ex)
             {
                 return BadRequest($"Error al generar el PDF: {ex.Message}");
+            }
+        }
+
+        [HttpGet]
+        [Route("Lista")]
+        public IActionResult Lista()
+        {
+            try
+            {
+                var list = _dbContext.UsuariosRegisters
+                    .OrderByDescending(t => t.Nombres)
+                    .ThenBy(t => t.TipoDocumento)
+                    .ToList();
+
+                return Ok(list);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest($"Error al obtener la lista de usuarios: {ex.Message}");
             }
         }
     }
