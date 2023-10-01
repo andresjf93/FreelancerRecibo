@@ -22,25 +22,31 @@ export class NavMenu extends Component {
   }
 
   render() {
-    return (
-      <header>
-        <Navbar className="navbar-expand-lg navbar-light bg-light">
-          <div className="container">
-            <NavbarBrand tag={Link} to="/">ReciboFreelancer</NavbarBrand>
-            <NavbarToggler onClick={this.toggleNavbar} />
-            <Collapse isOpen={!this.state.collapsed} navbar>
-              <ul className="navbar-nav ml-auto">
-                <NavItem>
-                  <NavLink tag={Link} to="/" className="nav-link">Recibo</NavLink>
-                </NavItem>
-                <NavItem>
-                  <NavLink tag={Link} to="/Clientes" className="nav-link">Clientes</NavLink>
-                </NavItem>
-              </ul>
-            </Collapse>
-          </div>
-        </Navbar>
-      </header>
+      return (
+          <header>
+              <Navbar className="navbar-expand-lg navbar-light" style={{ backgroundColor: '#007BFF' }}>
+                  <div className="container">
+                      <NavbarBrand tag={Link} to="/" style={{ color: 'white' }}>
+                          ReciboFreelancer
+                      </NavbarBrand>
+                      <NavbarToggler onClick={this.toggleNavbar} />
+                      <Collapse isOpen={!this.state.collapsed} navbar>
+                          <ul className="navbar-nav ml-auto">
+                              <NavItem>
+                                  <NavLink tag={Link} to="/" className="nav-link" style={{ color: 'white' }}>
+                                      Recibo
+                                  </NavLink>
+                              </NavItem>
+                              <NavItem>
+                                  <NavLink tag={Link} to="/Clientes" className="nav-link" style={{ color: 'white' }}>
+                                      Clientes
+                                  </NavLink>
+                              </NavItem>
+                          </ul>
+                      </Collapse>
+                  </div>
+              </Navbar>
+          </header>
     );
   }
 }

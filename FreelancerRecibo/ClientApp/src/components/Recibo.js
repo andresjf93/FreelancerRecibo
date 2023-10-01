@@ -1,6 +1,6 @@
 ﻿import 'bootstrap/dist/css/bootstrap.min.css';
 import React, { Component } from 'react';
-import { rgb, PDFDocument, StandardFonts, drawText, drawImage } from 'pdf-lib';
+import { PDFDocument, rgb, degrees } from 'pdf-lib';
 export class Recibo extends Component {
     constructor(props) {
         super(props);
@@ -19,136 +19,92 @@ export class Recibo extends Component {
         };
     }
 
+
     handleSubmit = async (event) => {
         event.preventDefault();
 
-        // Crea un nuevo documento PDF
+        // Crea un nuevo documento PDF en formato A4 (595x842 puntos)
         const pdfDoc = await PDFDocument.create();
+        const page = pdfDoc.addPage([595, 842]);
 
-        // Agrega una nueva página al documento
-        const page = pdfDoc.addPage([400, 600]);
-
-        // Dibuja contenido en la página
+        // Dibuja el contenido en la página
         const { width, height } = page.getSize();
-        const fontSize = 12; // Tamaño de fuente para la factura
-        const x = 50; // Posición X para el contenido
-        let y = height - 50; // Posición Y para el contenido, comenzando desde la parte superior
+        const fontSize = 12;
+        const margin = 50; // Margen izquierdo
+        let y = height - margin;
 
-        // Agregar el título del recibo
-        const title = this.state.title || 'Título no especificado';
-        page.drawText(`Título del Recibo: ${title}`, {
-            x,
-            y,
-            size: fontSize,
-            color: rgb(0, 0, 0),
-        });
-        y -= 20;
+        // Definir una función para dibujar una fila de la tabla
+        const drawTableRow = (label, value) => {
+            page.drawText(label, {
+                x: margin,
+                y,
+                size: fontSize,
+                color: rgb(0, 0, 0), // Color de texto negro
+            });
+            page.drawText(value, {
+                x: margin + 200, // Alinea el valor a la derecha
+                y,
+                size: fontSize,
+                color: rgb(0, 0, 0),
+            });
+            y -= 20; // Espacio entre filas
+        };
 
         // Agregar el logo (si está presente)
         if (this.state.logoPreview) {
             const logoImage = await pdfDoc.embedJpg(this.state.logoPreview);
             const logoDims = logoImage.scale(0.2); // Ajusta el tamaño de la imagen según tus necesidades
             page.drawImage(logoImage, {
-                x,
-                y,
+                x: margin,
+                y: height - margin - logoDims.height,
                 width: logoDims.width,
                 height: logoDims.height,
+                rotate: degrees(0), // Rotación de la imagen (0 grados en este caso)
             });
-            y -= logoDims.height + 10;
+            y -= logoDims.height + 10; // Espacio después de agregar el logo
         }
 
-        // Agregar el tipo de moneda
-        const currency = this.state.currency || 'Moneda no especificada';
-        page.drawText(`Tipo de Moneda: ${currency}`, {
-            x,
+        // Agregar el título de la factura
+        page.drawText('Factura', {
+            x: margin + 200, // Alinea el título al centro
             y,
-            size: fontSize,
-            color: rgb(0, 0, 0),
-        });
-        y -= 20;
-
-        // Agregar el monto a cobrar
-        const amount = this.state.amount || '0';
-        page.drawText(`Monto a Cobrar: ${amount}`, {
-            x,
-            y,
-            size: fontSize,
-            color: rgb(0, 0, 0),
-        });
-        y -= 20;
-
-        // Agregar la descripción
-        const description = this.state.description || 'Descripción no especificada';
-        page.drawText(`Descripción del Recibo: ${description}`, {
-            x,
-            y,
-            size: fontSize,
+            size: fontSize + 4, // Tamaño de fuente más grande para el título
             color: rgb(0, 0, 0),
         });
         y -= 40;
 
-        // Agregar la dirección
-        const address = this.state.address || 'Dirección no especificada';
-        page.drawText(`Dirección: ${address}`, {
-            x,
-            y,
-            size: fontSize,
-            color: rgb(0, 0, 0),
-        });
-        y -= 20;
+    // Agregar filas a la "tabla" con los datos
+    drawTableRow('Título del Recibo:', this.state.title || 'Título no especificado');
+    drawTableRow('Tipo de Moneda:', this.state.currency || 'Moneda no especificada');
+    drawTableRow('Monto a Cobrar:', this.state.amount || '0');
+    drawTableRow('Descripción del Recibo:', this.state.description || 'Descripción no especificada');
+    drawTableRow('Dirección:', this.state.address || 'Dirección no especificada');
+    drawTableRow('Nombres Completos:', this.state.fullName || 'Nombre no especificado');
+    drawTableRow('Tipo de Documento:', this.state.documentType || 'Tipo de Documento no especificado');
+    drawTableRow('Número de Documento:', this.state.documentNumber || 'Número de Documento no especificado');
+    const pdfBytes = await pdfDoc.save();
 
-        // Agregar el nombre completo
-        const fullName = this.state.fullName || 'Nombre no especificado';
-        page.drawText(`Nombres Completos: ${fullName}`, {
-            x,
-            y,
-            size: fontSize,
-            color: rgb(0, 0, 0),
-        });
-        y -= 20;
+    // Convierte los bytes en un Blob
+    const pdfBlob = new Blob([pdfBytes], { type: 'application/pdf' });
 
-        // Agregar el tipo de documento
-        const documentType = this.state.documentType || 'Tipo de Documento no especificado';
-        page.drawText(`Tipo de Documento: ${documentType}`, {
-            x,
-            y,
-            size: fontSize,
-            color: rgb(0, 0, 0),
-        });
-        y -= 20;
+    // Crea una URL para el Blob
+    const pdfUrl = URL.createObjectURL(pdfBlob);
 
-        // Agregar el número de documento
-        const documentNumber = this.state.documentNumber || 'Número de Documento no especificado';
-        page.drawText(`Número de Documento: ${documentNumber}`, {
-            x,
-            y,
-            size: fontSize,
-            color: rgb(0, 0, 0),
-        });
+    // Crea un enlace para descargar el PDF
+    const a = document.createElement('a');
+    a.href = pdfUrl;
+    a.download = 'factura.pdf'; // Puedes configurar aquí el nombre del archivo
+    a.style.display = 'none';
 
-        // Serializa el documento PDF a bytes
-        const pdfBytes = await pdfDoc.save();
+    // Agrega el enlace al DOM y simula un clic
+    document.body.appendChild(a);
+    a.click();
 
-        // Convierte los bytes en un Blob
-        const pdfBlob = new Blob([pdfBytes], { type: 'application/pdf' });
+    // Limpia después de la descarga
+    URL.revokeObjectURL(pdfUrl);
+    document.body.removeChild(a);
+};
 
-        // Crea una URL para el Blob
-        const pdfUrl = URL.createObjectURL(pdfBlob);
-
-        // Crea un enlace para descargar el PDF
-        const a = document.createElement('a');
-        a.href = pdfUrl;
-        a.download = 'factura.pdf'; // Puedes configurar aquí el nombre del archivo
-        a.style.display = 'none';
-
-        // Agrega el enlace al DOM y simula un clic
-        document.body.appendChild(a);
-        a.click();
-
-        // Limpia después de la descarga
-        URL.revokeObjectURL(pdfUrl);
-        document.body.removeChild(a);
-    };
 
 
     handleChange = (event) => {
@@ -157,6 +113,18 @@ export class Recibo extends Component {
 
         if (name === 'amount' && parseFloat(value) < 0) {
             this.setState({ [name]: '0' });
+        }
+    };
+    handleLogoChange = (event) => {
+        const file = event.target.files[0];
+        const reader = new FileReader();
+
+        reader.onloadend = () => {
+            this.setState({ ...this.state, logo: reader.result, logoPreview: reader.result });
+        };
+
+        if (file) {
+            reader.readAsDataURL(file);
         }
     };
 
@@ -221,7 +189,7 @@ export class Recibo extends Component {
                                             <input
                                                 type="file"
                                                 name="logo"
-                                                onChange={this.handleLogoChange} // Necesitas implementar handleLogoChange
+                                                onChange={this.handleLogoChange} 
                                                 className="form-control"
                                             />
                                         )}
